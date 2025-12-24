@@ -1,0 +1,7 @@
+/* Header component - Using Tailwind CSS, minimal custom styles */
+
+/* Custom gradient text support */
+.text-transparent {
+    -webkit-background-clip: text;
+    background-clip: text;
+}

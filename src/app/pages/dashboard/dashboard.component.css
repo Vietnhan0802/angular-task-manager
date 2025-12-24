@@ -1,0 +1,8 @@
+/* Dashboard component - Using Tailwind CSS */
+/* Minimal custom styles - most handled by Tailwind */
+
+/* Custom gradient text support */
+.bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+}

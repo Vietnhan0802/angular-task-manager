@@ -1,0 +1,22 @@
+<div class="app-container">
+  <!-- Header -->
+  <app-header></app-header>
+
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<!-- SVG Gradient Definition for Charts -->
+<svg style="position: absolute; width: 0; height: 0;">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366f1" />
+      <stop offset="100%" style="stop-color:#22d3ee" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,143 @@
+<div class="p-8 max-w-7xl mx-auto animate-fade-in">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-1">
+                Dashboard
+            </h1>
+            <p class="text-slate-400 m-0">Welcome back! Here's your task overview.</p>
+        </div>
+        <button class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark 
+                   text-white font-medium rounded-xl shadow-lg shadow-primary/40 
+                   hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/50 transition-all"
+            routerLink="/tasks/add">
+            <span>➕</span>
+            <span>New Task</span>
+        </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10" *ngIf="statistics$ | async as stats">
+        <div *ngFor="let card of statsCards; let i = index" class="flex items-center gap-6 p-6 rounded-2xl text-white relative overflow-hidden
+                hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            [style.background]="card.gradient" [style.animation-delay]="i * 100 + 'ms'">
+            <!-- Decorative circle -->
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/3 -translate-y-1/3">
+            </div>
+
+            <span class="text-4xl opacity-90">{{ card.icon }}</span>
+            <div class="flex flex-col">
+                <span class="text-4xl font-bold leading-none">{{ getStatValue(stats, card.key) }}</span>
+                <span class="text-sm opacity-90 mt-1">{{ card.title }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6" *ngIf="statistics$ | async as stats">
+        <!-- Completion Progress Card -->
+        <div class="lg:col-span-2 bg-slate-800/60 backdrop-blur-md border border-slate-700/30 rounded-2xl p-6 
+                hover:bg-slate-700/60 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-white">Completion Rate</h3>
+                <span class="text-xl font-semibold text-primary">{{ stats.completionRate }}%</span>
+            </div>
+
+            <!-- Ring Chart -->
+            <div class="relative w-44 h-44 mx-auto my-6">
+                <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke-width="8" class="stroke-slate-700" />
+                    <circle cx="50" cy="50" r="40" fill="none" stroke-width="8" class="stroke-primary"
+                        stroke-linecap="round" [style.stroke-dasharray]="251.2"
+                        [style.stroke-dashoffset]="251.2 - (251.2 * stats.completionRate / 100)"
+                        style="transition: stroke-dashoffset 1s ease" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-4xl font-bold text-white">{{ stats.completed }}</span>
+                    <span class="text-sm text-slate-500">of {{ stats.total }}</span>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex justify-center gap-6 flex-wrap">
+                <div class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2.5 h-2.5 rounded-full bg-success"></span>
+                    <span>Completed ({{ stats.completed }})</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+                    <span>In Progress ({{ stats.inProgress }})</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span>To Do ({{ stats.todo }})</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tasks Card -->
+        <div class="lg:col-span-3 bg-slate-800/60 backdrop-blur-md border border-slate-700/30 rounded-2xl p-6 
+                max-h-[500px] overflow-hidden flex flex-col hover:bg-slate-700/60 transition-all">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-white">Recent Tasks</h3>
+                <a routerLink="/tasks" class="text-sm text-primary hover:text-primary-light transition-colors">
+                    View All →
+                </a>
+            </div>
+
+            <div class="flex-1 overflow-y-auto flex flex-col gap-2">
+                <ng-container *ngIf="recentTasks$ | async as tasks">
+                    <div *ngFor="let task of tasks | slice:0:5; let i = index" class="flex items-center gap-4 p-4 bg-slate-700 rounded-xl border-l-4 
+                      hover:bg-slate-600 transition-all animate-slide-up"
+                        [class.border-l-success]="task.priority === 'low'"
+                        [class.border-l-warning]="task.priority === 'medium'"
+                        [class.border-l-danger]="task.priority === 'high'" [style.animation-delay]="i * 50 + 'ms'">
+
+                        <!-- Checkbox -->
+                        <div class="w-6 h-6 flex items-center justify-center border-2 border-slate-600 rounded-md 
+                        cursor-pointer hover:border-primary hover:bg-primary/20 transition-all text-xs text-success"
+                            [class.bg-success]="task.status === 'completed'"
+                            [class.border-success]="task.status === 'completed'"
+                            [class.text-white]="task.status === 'completed'" (click)="toggleTaskStatus(task.id)">
+                            <span *ngIf="task.status === 'completed'">✓</span>
+                        </div>
+
+                        <!-- Task Info -->
+                        <div class="flex-1 min-w-0">
+                            <span class="block text-sm font-medium text-white truncate"
+                                [class.line-through]="task.status === 'completed'"
+                                [class.text-slate-500]="task.status === 'completed'">
+                                {{ task.title }}
+                            </span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded uppercase tracking-wide"
+                                    [class.bg-danger/20]="task.priority === 'high'"
+                                    [class.text-danger-light]="task.priority === 'high'"
+                                    [class.bg-warning/20]="task.priority === 'medium'"
+                                    [class.text-warning-light]="task.priority === 'medium'"
+                                    [class.bg-success/20]="task.priority === 'low'"
+                                    [class.text-success-light]="task.priority === 'low'">
+                                    {{ task.priority }}
+                                </span>
+                                <span class="text-xs text-slate-500">{{ task.dueDate | relativeTime }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Status Dot -->
+                        <span class="w-2 h-2 rounded-full" [class.bg-slate-500]="task.status === 'todo'"
+                            [class.bg-primary]="task.status === 'in-progress'"
+                            [class.bg-success]="task.status === 'completed'">
+                        </span>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div *ngIf="tasks.length === 0" class="text-center py-10 text-slate-500">
+                        <span class="text-5xl block mb-4">📝</span>
+                        <p>No tasks yet. Create your first task!</p>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

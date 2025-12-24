@@ -1,0 +1,25 @@
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    margin-top: var(--header-height);
+    margin-left: var(--sidebar-width);
+    min-height: calc(100vh - var(--header-height));
+    transition: margin-left var(--transition-normal);
+}
+
+/* When sidebar is collapsed */
+.sidebar-collapsed .main-content {
+    margin-left: 80px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+}

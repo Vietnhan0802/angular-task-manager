@@ -1,0 +1,115 @@
+<div class="task-detail-page animate-fade-in">
+    <ng-container *ngIf="task$ | async as task; else notFound">
+        <!-- Header -->
+        <div class="detail-header">
+            <button class="btn btn-ghost back-btn" (click)="onBack()">
+                <span>←</span>
+                <span>Back to Tasks</span>
+            </button>
+
+            <div class="header-actions">
+                <button class="btn btn-secondary" (click)="onEdit(task.id)">
+                    <span>✏️</span>
+                    <span>Edit</span>
+                </button>
+                <button class="btn btn-danger" (click)="onDelete(task.id)">
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Task Card -->
+        <div class="task-detail-card card" [appPriorityColor]="task.priority">
+            <!-- Status Bar -->
+            <div class="status-bar" [ngClass]="getStatusInfo(task.status).class">
+                <span class="status-icon">{{ getStatusInfo(task.status).icon }}</span>
+                <span class="status-label">{{ getStatusInfo(task.status).label }}</span>
+                <button class="change-status-btn" (click)="toggleStatus(task)">
+                    Change Status →
+                </button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="task-main">
+                <h1 class="task-title" [class.completed]="task.status === 'completed'">
+                    {{ task.title }}
+                </h1>
+
+                <p class="task-description">{{ task.description }}</p>
+
+                <!-- Meta Info -->
+                <div class="task-meta-grid">
+                    <!-- Priority -->
+                    <div class="meta-item">
+                        <span class="meta-label">Priority</span>
+                        <div class="meta-value priority-value">
+                            <span>{{ getPriorityInfo(task.priority).icon }}</span>
+                            <span>{{ getPriorityInfo(task.priority).label }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Due Date -->
+                    <div class="meta-item">
+                        <span class="meta-label">Due Date</span>
+                        <div class="meta-value" [class.overdue]="isOverdue(task)">
+                            <span>📅</span>
+                            <span>{{ task.dueDate | date:'fullDate' }}</span>
+                            <span class="relative-time">({{ task.dueDate | relativeTime }})</span>
+                        </div>
+                    </div>
+
+                    <!-- Created Date -->
+                    <div class="meta-item">
+                        <span class="meta-label">Created</span>
+                        <div class="meta-value">
+                            <span>🕐</span>
+                            <span>{{ task.createdAt | date:'medium' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="meta-item tags-item">
+                        <span class="meta-label">Tags</span>
+                        <div class="tags-list">
+                            <span *ngFor="let tag of task.tags" class="tag">
+                                {{ tag }}
+                            </span>
+                            <span *ngIf="task.tags.length === 0" class="no-tags">No tags</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-card" [class.active]="task.status === 'completed'" (click)="toggleStatus(task)">
+                    <span class="action-icon">✅</span>
+                    <span class="action-label">
+                        {{ task.status === 'completed' ? 'Completed' : 'Mark Complete' }}
+                    </span>
+                </button>
+                <button class="action-card" (click)="onEdit(task.id)">
+                    <span class="action-icon">✏️</span>
+                    <span class="action-label">Edit Task</span>
+                </button>
+                <button class="action-card danger" (click)="onDelete(task.id)">
+                    <span class="action-icon">🗑️</span>
+                    <span class="action-label">Delete</span>
+                </button>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- Not Found State -->
+    <ng-template #notFound>
+        <div class="not-found">
+            <span class="not-found-icon">🔍</span>
+            <h2>Task Not Found</h2>
+            <p>The task you're looking for doesn't exist or has been deleted.</p>
+            <button class="btn btn-primary" (click)="onBack()">
+                Go Back to Tasks
+            </button>
+        </div>
+    </ng-template>
+</div>

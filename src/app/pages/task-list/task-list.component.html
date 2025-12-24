@@ -1,0 +1,168 @@
+<div class="p-8 max-w-7xl mx-auto animate-fade-in">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-bold text-white mb-1">All Tasks</h1>
+            <p class="text-slate-400 m-0">Manage and organize your tasks</p>
+        </div>
+        <button class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-primary-dark 
+                   text-white font-medium rounded-xl shadow-lg shadow-primary/40 
+                   hover:-translate-y-0.5 hover:shadow-xl transition-all" routerLink="/tasks/add">
+            <span>➕</span>
+            <span>New Task</span>
+        </button>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="flex flex-wrap gap-4 mb-6 p-4 bg-slate-800/60 backdrop-blur-md rounded-2xl border border-slate-700/30">
+        <!-- Search Box -->
+        <div
+            class="flex-1 min-w-[250px] flex items-center gap-2 px-4 py-2 bg-slate-700 border border-slate-600 
+                rounded-xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/40 transition-all">
+            <span class="text-sm opacity-60">🔍</span>
+            <input type="text"
+                class="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder-slate-500"
+                placeholder="Search tasks..." [(ngModel)]="filter.search" (ngModelChange)="onFilterChange()" />
+            <button *ngIf="filter.search" class="text-slate-500 hover:text-white transition-colors"
+                (click)="filter.search = ''; onFilterChange()">✕</button>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center gap-3 flex-wrap">
+            <!-- Status Filter -->
+            <select class="min-w-[140px] px-4 py-2 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white 
+               cursor-pointer focus:outline-none focus:border-primary" [(ngModel)]="filter.status"
+                (ngModelChange)="onFilterChange()">
+                <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+
+            <!-- Priority Filter -->
+            <select class="min-w-[140px] px-4 py-2 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white 
+               cursor-pointer focus:outline-none focus:border-primary" [(ngModel)]="filter.priority"
+                (ngModelChange)="onFilterChange()">
+                <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+
+            <!-- Clear Filters Button -->
+            <button *ngIf="filter.status !== 'all' || filter.priority !== 'all' || filter.search"
+                class="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-all"
+                (click)="clearFilters()">
+                Clear Filters
+            </button>
+
+            <!-- View Toggle -->
+            <div class="flex bg-slate-700 rounded-xl overflow-hidden">
+                <button class="px-3 py-2 text-slate-400 hover:text-white transition-colors"
+                    [class.bg-primary]="viewMode === 'grid'" [class.text-white]="viewMode === 'grid'"
+                    (click)="viewMode = 'grid'">⊞</button>
+                <button class="px-3 py-2 text-slate-400 hover:text-white transition-colors"
+                    [class.bg-primary]="viewMode === 'list'" [class.text-white]="viewMode === 'list'"
+                    (click)="viewMode = 'list'">☰</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="text-sm text-slate-500 mb-4">
+        Showing {{ filteredTasks.length }} of {{ tasks.length }} tasks
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-16 text-slate-500">
+        <div class="w-10 h-10 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+        <p>Loading tasks...</p>
+    </div>
+
+    <!-- Tasks Grid -->
+    <div *ngIf="!isLoading" class="grid gap-4" [class.grid-cols-1]="viewMode === 'list'"
+        [class.sm:grid-cols-2]="viewMode === 'grid'" [class.lg:grid-cols-3]="viewMode === 'grid'">
+
+        <div *ngFor="let task of filteredTasks; trackBy: trackByTaskId; let i = index" class="flex gap-4 p-4 bg-slate-800/60 backdrop-blur-md border border-slate-700/30 rounded-2xl 
+                cursor-pointer hover:bg-slate-700/60 hover:-translate-y-1 hover:shadow-xl transition-all border-l-4"
+            [class.border-l-success]="task.priority === 'low'" [class.border-l-warning]="task.priority === 'medium'"
+            [class.border-l-danger]="task.priority === 'high'" [class.border-l-danger/30]="isOverdue(task)"
+            [style.animation-delay]="i * 50 + 'ms'" (click)="viewTask(task.id)">
+
+            <!-- Checkbox -->
+            <div class="w-6 h-6 min-w-[24px] flex items-center justify-center border-2 border-slate-600 rounded-md 
+                  cursor-pointer hover:border-primary hover:bg-primary/20 transition-all text-xs"
+                [class.bg-success]="task.status === 'completed'" [class.border-success]="task.status === 'completed'"
+                [class.text-white]="task.status === 'completed'" (click)="toggleStatus(task, $event)">
+                <span *ngIf="task.status === 'completed'">✓</span>
+            </div>
+
+            <!-- Task Content -->
+            <div class="flex-1 min-w-0">
+                <h3 class="text-base font-semibold text-white mb-1 truncate"
+                    [class.line-through]="task.status === 'completed'"
+                    [class.text-slate-500]="task.status === 'completed'">
+                    {{ task.title }}
+                </h3>
+                <p class="text-sm text-slate-400 mb-3 line-clamp-2">{{ task.description }}</p>
+
+                <!-- Meta Info -->
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="flex items-center gap-1 text-xs text-slate-500" [class.text-danger]="isOverdue(task)">
+                        <span>📅</span>
+                        {{ task.dueDate | relativeTime }}
+                    </span>
+                    <div class="flex gap-1">
+                        <span *ngFor="let tag of task.tags | slice:0:3"
+                            class="px-2 py-0.5 bg-slate-700 rounded text-xs text-slate-500">
+                            {{ tag }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="flex gap-2">
+                    <span
+                        class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded uppercase tracking-wide"
+                        [class.bg-danger/20]="task.priority === 'high'"
+                        [class.text-danger-light]="task.priority === 'high'"
+                        [class.bg-warning/20]="task.priority === 'medium'"
+                        [class.text-warning-light]="task.priority === 'medium'"
+                        [class.bg-success/20]="task.priority === 'low'"
+                        [class.text-success-light]="task.priority === 'low'">
+                        {{ task.priority }}
+                    </span>
+                    <span
+                        class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded uppercase tracking-wide"
+                        [class.bg-slate-600/50]="task.status === 'todo'" [class.text-slate-400]="task.status === 'todo'"
+                        [class.bg-primary/20]="task.status === 'in-progress'"
+                        [class.text-primary-light]="task.status === 'in-progress'"
+                        [class.bg-success/20]="task.status === 'completed'"
+                        [class.text-success-light]="task.status === 'completed'">
+                        {{ task.status }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="w-8 h-8 flex items-center justify-center bg-slate-700 border border-slate-600 
+                       rounded-lg hover:bg-slate-600 transition-all text-sm"
+                    (click)="editTask(task.id); $event.stopPropagation()">✏️</button>
+                <button class="w-8 h-8 flex items-center justify-center bg-slate-700 border border-slate-600 
+                       rounded-lg hover:bg-danger/20 hover:border-danger transition-all text-sm"
+                    (click)="deleteTask(task.id, $event)">🗑️</button>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredTasks.length === 0 && !isLoading" class="col-span-full text-center py-16 text-slate-500">
+            <span class="text-6xl block mb-4">📋</span>
+            <h3 class="text-xl font-semibold text-white mb-2">No tasks found</h3>
+            <p *ngIf="filter.search || filter.status !== 'all' || filter.priority !== 'all'" class="mb-4">
+                Try adjusting your filters
+            </p>
+            <p *ngIf="!filter.search && filter.status === 'all' && filter.priority === 'all'" class="mb-4">
+                Click the button below to create your first task
+            </p>
+            <button class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-medium 
+                     rounded-xl shadow-lg shadow-primary/40" routerLink="/tasks/add">
+                Create Task
+            </button>
+        </div>
+    </div>
+</div>
